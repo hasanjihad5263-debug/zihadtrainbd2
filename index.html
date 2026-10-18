@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>এগারো সিন্দুর টিকেট ট্র্যাকার</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Hind Siliguri', sans-serif; background-color: #0f172a; color: #f8fafc; }
+  </style>
+</head>
+<body class="p-4 max-w-md mx-auto pb-12">
+
+  <!-- Header -->
+  <div class="text-center my-4 border-b border-slate-700 pb-3">
+    <h1 class="text-2xl font-bold text-amber-400">🚂 এগারো সিন্দুর প্রভাতী</h1>
+    <p class="text-xs text-slate-400">কিশোরগঞ্জ ➔ ঢাকা (স্টেশন ভিত্তিক টিকেট)</p>
+  </div>
+
+  <!-- Route Selection -->
+  <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 mb-4 text-center">
+    <span class="text-xs text-slate-300">মূল স্টেশন: </span>
+    <span class="font-bold text-emerald-400">কিশোরগঞ্জ</span>
+  </div>
+
+  <!-- Input Form -->
+  <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg mb-6">
+    <h2 class="text-sm font-bold text-amber-300 mb-3 border-b border-slate-700 pb-2">
+      ✏️ স্টেশনের টিকেট আপডেট করুন
+    </h2>
+    
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-slate-300">গন্তব্য স্টেশন নির্বাচন করুন:</label>
+        <select id="toStation" class="w-full p-2 text-sm rounded bg-slate-900 border border-slate-600 focus:outline-none focus:border-amber-500 text-slate-200">
+          <option value="মানিকখালী">মানিকখালী</option>
+          <option value="সরারচর">সরারচর</option>
+          <option value="বাজিতপুর">বাজিতপুর</option>
+          <option value="কুলিয়ারচর">কুলিয়ারচর</option>
+          <option value="ভৈরব বাজার">ভৈরব বাজার</option>
+          <option value="মেথিকান্দা">মেথিকান্দা</option>
+          <option value="নরসিংদী">নরসিংদী</option>
+          <option value="ঢাকা">ঢাকা (কমলাপুর)</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="text-xs text-slate-300">শোভন চেয়ার:</label>
+          <input type="number" id="shovon" value="0" min="0" class="w-full p-2 text-sm rounded bg-slate-900 border border-slate-600 text-center font-bold text-amber-400">
+        </div>
+        <div>
+          <label class="text-xs text-slate-300">স্নিগ্ধা (AC):</label>
+          <input type="number" id="snigdha" value="0" min="0" class="w-full p-2 text-sm rounded bg-slate-900 border border-slate-600 text-center font-bold text-sky-400">
+        </div>
+        <div>
+          <label class="text-xs text-slate-300">এসি সিট:</label>
+          <input type="number" id="ac" value="0" min="0" class="w-full p-2 text-sm rounded bg-slate-900 border border-slate-600 text-center font-bold text-emerald-400">
+        </div>
+      </div>
+
+      <button onclick="saveStationTicket()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-lg text-sm transition mt-2">
+        💾 সেভ করুন
+      </button>
+    </div>
+  </div>
+
+  <!-- Title for Station List -->
+  <div class="flex justify-between items-center mb-3">
+    <h3 class="text-sm font-bold text-slate-200">📊 কিশোরগঞ্জ থেকে টিকেট তালিকা:</h3>
+    <button onclick="clearAllData()" class="text-xs text-red-400 underline">সব রিসেট</button>
+  </div>
+
+  <!-- Station List Container -->
+  <div class="space-y-3" id="stationList">
+    <!-- Dynamic Content -->
+  </div>
+
+  <script>
+    const defaultStations = [
+      { name: "মানিকখালী", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "সরারচর", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "বাজিতপুর", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "কুলিয়ারচর", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "ভৈরব বাজার", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "মেথিকান্দা", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "নরসিংদী", shovon: 0, snigdha: 0, ac: 0 },
+      { name: "ঢাকা", shovon: 0, snigdha: 0, ac: 0 }
+    ];
+
+    let stationData = JSON.parse(localStorage.getItem('egaroSindhurTickets')) || defaultStations;
+
+    function saveStationTicket() {
+      const stationName = document.getElementById('toStation').value;
+      const shovonVal = parseInt(document.getElementById('shovon').value) || 0;
+      const snigdhaVal = parseInt(document.getElementById('snigdha').value) || 0;
+      const acVal = parseInt(document.getElementById('ac').value) || 0;
+
+      const stationIndex = stationData.findIndex(s => s.name === stationName);
+      if (stationIndex !== -1) {
+        stationData[stationIndex].shovon = shovonVal;
+        stationData[stationIndex].snigdha = snigdhaVal;
+        stationData[stationIndex].ac = acVal;
+      }
+
+      localStorage.setItem('egaroSindhurTickets', JSON.stringify(stationData));
+      renderList();
+    }
+
+    function clearAllData() {
+      if(confirm('সব স্টেশনের টিকেট তথ্য ০ করে দিতে চান?')) {
+        stationData = [
+          { name: "মানিকখালী", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "সরারচর", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "বাজিতপুর", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "কুলিয়ারচর", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "ভৈরব বাজার", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "মেথিকান্দা", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "নরসিংদী", shovon: 0, snigdha: 0, ac: 0 },
+          { name: "ঢাকা", shovon: 0, snigdha: 0, ac: 0 }
+        ];
+        localStorage.setItem('egaroSindhurTickets', JSON.stringify(stationData));
+        renderList();
+      }
+    }
+
+    function renderList() {
+      const container = document.getElementById('stationList');
+      container.innerHTML = '';
+
+      stationData.forEach(st => {
+        const total = st.shovon + st.snigdha + st.ac;
+        container.innerHTML += `
+          <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 shadow">
+            <div class="flex justify-between items-center mb-2">
+              <div class="text-sm font-bold text-amber-300">
+                🚉 কিশোরগঞ্জ ➔ <span class="text-white">${st.name}</span>
+              </div>
+              <div class="text-xs bg-slate-900 px-2 py-1 rounded border border-slate-700">
+                মোট: <span class="text-emerald-400 font-bold">${total}</span> টি
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-slate-900/80 p-2 rounded-lg text-center text-xs">
+              <div>
+                <span class="block text-slate-400 text-[10px]">শোভন চেয়ার</span>
+                <span class="font-bold text-amber-400">${st.shovon} টি</span>
+              </div>
+              <div class="border-x border-slate-700">
+                <span class="block text-slate-400 text-[10px]">স্নিগ্ধা</span>
+                <span class="font-bold text-sky-400">${st.snigdha} টি</span>
+              </div>
+              <div>
+                <span class="block text-slate-400 text-[10px]">এসি সিট</span>
+                <span class="font-bold text-emerald-400">${st.ac} টি</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    renderList();
+  </script>
+
+</body>
+</html>
